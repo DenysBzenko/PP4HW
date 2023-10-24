@@ -4,6 +4,23 @@
 #include <string>
 #include <stack>
 #include <windows.h> 
+#include <fstream>
+
+class FileReader {
+public:
+    std::string read(const std::string& filename) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Could not open file " + filename);
+        }
+
+
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        file.close();
+        return content;
+    }
+};
+
 #define MAX_TEXT_SIZE 1024
 
 class DecrtptEcrypt {
@@ -19,7 +36,7 @@ public:
         hInst = LoadLibrary(TEXT("D:\\KSE\\paradigm\\HW3PP\\Dll1\\x64\\Debug\\Dll1.dll"));
         if (hInst == NULL) {
             std::cerr << "Lib not found" << std::endl;
-            exit(-1); 
+            exit(-1);
         }
 
         typedef void (*EncryptFunction)(const char*, int, char*);
@@ -31,7 +48,7 @@ public:
         if (encrypt == NULL || decrypt == NULL) {
             std::cerr << "Function not found" << std::endl;
             FreeLibrary(hInst);
-            exit(-1); 
+            exit(-1);
         }
     }
 
@@ -61,64 +78,25 @@ public:
     }
 };
 
-class FileSveload {
-private:
-    char* text;
 
+class FileWriter {
 public:
-    FileSveload(char* externalText) : text(externalText) {}
-
-    void save_to_file() {
-        char filename[100];
-        printf("Enter the file name for saving: ");
-        fgets(filename, sizeof(filename), stdin);
-        if (filename[strlen(filename) - 1] == '\n') {
-            filename[strlen(filename) - 1] = '\0';
+    void write(const std::string& filename, const std::string& content) {
+        std::ofstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Could not open file " + filename);
         }
 
-        FILE* file;
-        errno_t err = fopen_s(&file, filename, "w");
-        if (err != 0) {
-            perror("Error opening file");
-            return;
-        }
 
-        fputs(text, file);
-        fclose(file);
-        printf("Text has been saved successfully\n");
-    }
-
-    void load_from_file() {
-        char filename[100];
-        printf("Enter the file name for loading: ");
-        fgets(filename, sizeof(filename), stdin);
-        if (filename[strlen(filename) - 1] == '\n') {
-            filename[strlen(filename) - 1] = '\0';
-        }
-
-        FILE* file;
-        errno_t err = fopen_s(&file, filename, "r");
-        if (err != 0) {
-            perror("Error opening file");
-            return;
-        }
-
-        char ch;
-        int index = 0;
-        while ((ch = fgetc(file)) != EOF && index < MAX_TEXT_SIZE - 1) {
-            text[index++] = ch;
-        }
-        text[index] = '\0';
-
-        fclose(file);
-        printf("Text has been loaded successfully\n");
+        file << content;
+        file.close();
     }
 };
 
 class ClipboardManager {
 private:
     char clipboard[MAX_TEXT_SIZE] = "";
-    
+
 
 public:
     void copy(const char* source, int start, int length) {
@@ -485,7 +463,7 @@ public:
                 scanf_s("%d", &num_symbols);
                 deleteAtCursor(num_symbols);
             case 21:
-                decrtptEcrypt.execute(); 
+                decrtptEcrypt.execute();
                 break;
             default:
                 printf("Invalid choice!\n");
