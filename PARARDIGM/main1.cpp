@@ -22,8 +22,11 @@ public:
             exit(-1); 
         }
 
-        encrypt = (EncryptFunction)GetProcAddress(hInst, "pecrypt");
-        decrypt = (DecryptFunction)GetProcAddress(hInst, "decrypt");
+        typedef void (*EncryptFunction)(const char*, int, char*);
+        typedef void (*DecryptFunction)(const char*, int, char*);
+
+        EncryptFunction encrypt = (EncryptFunction)GetProcAddress(hInst, "ecrypt");
+        DecryptFunction decrypt = (DecryptFunction)GetProcAddress(hInst, "decrypt");
 
         if (encrypt == NULL || decrypt == NULL) {
             std::cerr << "Function not found" << std::endl;
