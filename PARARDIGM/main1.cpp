@@ -23,11 +23,12 @@ public:
 
 #define MAX_TEXT_SIZE 1024
 
+
 class DecrtptEcrypt {
 private:
     HINSTANCE hInst;
-    typedef void (*EncryptFunction)(const char*, int, char*);
-    typedef void (*DecryptFunction)(const char*, int, char*);
+    typedef void (*EncryptFunction)(const std::string&, int, std::string&);
+    typedef void (*DecryptFunction)(const std::string&, int, std::string&);
     EncryptFunction encrypt;
     DecryptFunction decrypt;
 
@@ -39,11 +40,8 @@ public:
             exit(-1);
         }
 
-        typedef void (*EncryptFunction)(const char*, int, char*);
-        typedef void (*DecryptFunction)(const char*, int, char*);
-
-        EncryptFunction encrypt = (EncryptFunction)GetProcAddress(hInst, "ecrypt");
-        DecryptFunction decrypt = (DecryptFunction)GetProcAddress(hInst, "decrypt");
+        encrypt = (EncryptFunction)GetProcAddress(hInst, "ecrypt");
+        decrypt = (DecryptFunction)GetProcAddress(hInst, "decrypt");
 
         if (encrypt == NULL || decrypt == NULL) {
             std::cerr << "Function not found" << std::endl;
@@ -56,25 +54,16 @@ public:
         FreeLibrary(hInst);
     }
 
-    void execute() {
-        std::string inputText;
-        std::cout << "Enter text to encrypt: ";
-        std::getline(std::cin, inputText);
+    std::string executeEncryption(const std::string& inputText, int key) {
+        std::string encryptedText;
+        encrypt(inputText, key, encryptedText);
+        return encryptedText;
+    }
 
-        int key;
-        std::cout << "Enter encryption key: ";
-        std::cin >> key;
-
-        char* encryptedText = new char[inputText.length() + 1];
-        encrypt(inputText.c_str(), key, encryptedText);
-        std::cout << "Encrypted Text: " << encryptedText << std::endl;
-
-        char* decryptedText = new char[inputText.length() + 1];
+    std::string executeDecryption(const std::string& encryptedText, int key) {
+        std::string decryptedText;
         decrypt(encryptedText, key, decryptedText);
-        std::cout << "Decrypted Text: " << decryptedText << std::endl;
-
-        delete[] encryptedText;
-        delete[] decryptedText;
+        return decryptedText;
     }
 };
 
